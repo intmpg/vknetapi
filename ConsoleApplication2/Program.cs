@@ -5,6 +5,7 @@ using VkNet.Model.RequestParams;
 using System.Net;
 using System.Text;
 using VkNet.Exception;
+using System.IO;
 
 namespace ConsoleApp1
 {
@@ -22,38 +23,33 @@ namespace ConsoleApp1
                     Password = args[1],
                     Settings = Settings.All
                 });
+                StreamWriter outputFile = new StreamWriter(@"check.kek");
+                outputFile.WriteLine("TRUE");
+                outputFile.Close();
 
                 var createAlbum = vkapi.Photo.CreateAlbum(new PhotoCreateAlbumParams
                 {
                     Title = "Моя деревня"
                 });
 
-                //альбом
-                var albumId = createAlbum.Id;
-                var uploadServer = vkapi.Photo.GetUploadServer(albumId);
+                string messageText = "Я поиграл в игру «Моя деревня» и набрал " + args[2] + " баллов";
+                var uploadServer = vkapi.Photo.GetWallUploadServer(null);
 
                 //загрузка
                 var wc = new WebClient();
                 var responseFile = Encoding.ASCII.GetString(wc.UploadFile(uploadServer.UploadUrl, @"screen.jpg"));
 
-                // Сохранить загруженный файл
-                var photos = vkapi.Photo.Save(new PhotoSaveParams
-                {
-                    SaveFileResponse = responseFile,
-                    AlbumId = albumId
-                });
+                // Сохранить 
+                var photos = vkapi.Photo.SaveWallPhoto(responseFile);
+                vkapi.Wall.Post(vkapi.UserId.Value, false, false, messageText, photos);
 
-                string messageText = "Я поиграл в игру «Моя деревня» и набрал " + args[2] + " баллов";
-                //пост
-                var post = vkapi.Wall.Post(new WallPostParams
-                {
-                    Message = messageText,
-                    Attachments = photos
-                });
             }
             catch(VkApiAuthorizationException)
             {
                 Console.WriteLine("invalid password");
+                StreamWriter outputFile = new StreamWriter(@"check.kek");
+                outputFile.WriteLine("FALSE");
+                outputFile.Close();
             }
 
             Console.WriteLine("кек");

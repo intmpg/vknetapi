@@ -23,31 +23,31 @@ namespace ConsoleApp1
                     Password = args[1],
                     Settings = Settings.All
                 });
-                StreamWriter outputFile = new StreamWriter(@"check.kek");
+
+                StreamWriter outputFile = new StreamWriter(@"vk_post/post/check.kek");
                 outputFile.WriteLine("TRUE");
                 outputFile.Close();
-
-                var createAlbum = vkapi.Photo.CreateAlbum(new PhotoCreateAlbumParams
-                {
-                    Title = "Моя деревня"
-                });
 
                 string messageText = "Я поиграл в игру «Моя деревня» и набрал " + args[2] + " баллов";
                 var uploadServer = vkapi.Photo.GetWallUploadServer(null);
 
-                //загрузка
                 var wc = new WebClient();
-                var responseFile = Encoding.ASCII.GetString(wc.UploadFile(uploadServer.UploadUrl, @"screen.jpg"));
+                var responseFile = Encoding.ASCII.GetString(wc.UploadFile(uploadServer.UploadUrl, @"vk_post/post/screen.jpg"));
 
-                // Сохранить 
                 var photos = vkapi.Photo.SaveWallPhoto(responseFile);
-                vkapi.Wall.Post(vkapi.UserId.Value, false, false, messageText, photos);
-
+                var post = vkapi.Wall.Post(new WallPostParams
+                {
+                    OwnerId = vkapi.UserId.Value,
+                    FriendsOnly = false,
+                    FromGroup = false,
+                    Message = messageText,
+                    Attachments = photos                
+                });
             }
             catch(VkApiAuthorizationException)
             {
                 Console.WriteLine("invalid password");
-                StreamWriter outputFile = new StreamWriter(@"check.kek");
+                StreamWriter outputFile = new StreamWriter(@"vk_post/post/check.kek");
                 outputFile.WriteLine("FALSE");
                 outputFile.Close();
             }
